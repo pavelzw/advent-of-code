@@ -1,0 +1,41 @@
+name: aoc
+version: 0.1.0.0
+github: "pavelzw/advent-of-code"
+author: "Pavel Zwerschke"
+maintainer: "pavelzw@gmail.com"
+
+extra-source-files:
+- README.md
+
+description: Advent of Code solutions
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- split
+- optparse-applicative
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+
+executables:
+  aoc-2022:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - aoc
