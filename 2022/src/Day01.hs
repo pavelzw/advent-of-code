@@ -28,4 +28,3 @@ solve f = do
 
 day :: Day
 day = DayFile solve
-  
