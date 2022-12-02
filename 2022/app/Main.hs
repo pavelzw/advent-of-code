@@ -5,9 +5,13 @@ import Options.Applicative
 import Day
 
 import qualified Day01
+import qualified Day02
 
 solutions :: Map Int Day
-solutions = fromList [(1, Day01.day)]
+solutions = fromList 
+  [ (1, Day01.day)
+  , (2, Day02.day)
+  ]
 
 runDay :: Day -> FilePath -> IO ()
 runDay (DayFile f) = f
