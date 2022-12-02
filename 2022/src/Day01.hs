@@ -1,30 +1,24 @@
 module Day01 (day) where
 
-import Day
+import qualified Day (Day(..))
+import Parse (Parser)
 
 import Data.List (sortBy)
-import Data.List.Split
+import Text.Megaparsec (sepBy, endBy1)
+import Text.Megaparsec.Char (newline)
+import Text.Megaparsec.Char.Lexer (decimal)
 
-parseInput :: String -> [[Int]]
-parseInput = map (map (\x -> read x::Int)) . splitOn [""] . lines
+parseInput :: Parser [[Int]]
+parseInput = sepBy (endBy1 decimal newline) newline
 
 calories :: [[Int]] -> [Int]
--- sums the calories and sorts them in descending order
 calories = sortBy (flip compare) . map sum
 
-solutionA :: [[Int]] -> Int
-solutionA = head . calories
+part1 :: [[Int]] -> Int
+part1 = head . calories
 
-solutionB :: [[Int]] -> Int
-solutionB = sum . take 3 . calories
+part2 :: [[Int]] -> Int
+part2 = sum . take 3 . calories
 
-solve :: FilePath -> IO ()
-solve f = do
-  input <- readFile f
-  solA <- (pure . solutionA . parseInput) input
-  solB <- (pure . solutionB . parseInput) input
-  putStrLn ("The elf carrying the most calories has " ++ (show solA) ++ " calories.")
-  putStrLn ("The the elves carrying the most calories have " ++ (show solB) ++ " calories in total.")
-
-day :: Day
-day = DayFile solve
+day :: Day.Day [[Int]] Int
+day = Day.Day parseInput part1 part2

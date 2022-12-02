@@ -1,3 +1,5 @@
 module Day ( Day(..) ) where
 
-data Day = DayFile (FilePath -> IO ()) | DayIO (IO ())
+import Parse (Parser)
+
+data Day a b = Day { parser :: Parser a, part1 :: a -> b, part2 :: a -> b }

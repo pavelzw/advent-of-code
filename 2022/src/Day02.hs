@@ -1,83 +1,66 @@
 module Day02 (day) where
 
-import Day
+import qualified Day
+import Parse (Parser)
 
-import Data.Char (isSpace)
+import Text.Megaparsec ((<|>), some)
+import Text.Megaparsec.Char (char, space, newline)
 
-data RPS = Rock | Paper | Scissors deriving (Eq, Show)
-data Result = Win | Lose | Draw deriving (Eq, Show)
-data Game = Game RPS RPS deriving (Eq, Show)
+data Shape = Rock | Paper | Scissors deriving (Eq, Enum)
+instance Ord Shape where
+  compare Rock Paper = LT
+  compare Rock Scissors = GT
+  compare Paper Rock = GT
+  compare Paper Scissors = LT
+  compare Scissors Rock = LT
+  compare Scissors Paper = GT
+  compare _ _ = EQ
+data Result = Lose | Draw | Win deriving Enum
+data ShapeOrResult = ShapeOrResult Shape Result
 
-parseOpponent :: Char -> RPS
-parseOpponent 'A' = Rock
-parseOpponent 'B' = Paper
-parseOpponent 'C' = Scissors
-parseOpponent _ = error "Invalid opponent input"
+parseInput :: Parser [(Shape, ShapeOrResult)]
+parseInput = some parseLine
 
-parseSuggestionA :: Char -> RPS
-parseSuggestionA 'X' = Rock
-parseSuggestionA 'Y' = Paper
-parseSuggestionA 'Z' = Scissors
-parseSuggestionA _ = error "Invalid suggestion input"
+parseLine :: Parser (Shape, ShapeOrResult)
+parseLine = do
+  shape <- Rock <$ char 'A' <|> Paper <$ char 'B' <|> Scissors <$ char 'C'
+  _ <- space
+  shapeOrResult <- ShapeOrResult Rock Lose <$ char 'X' <|> ShapeOrResult Paper Draw <$ char 'Y' <|> ShapeOrResult Scissors Win <$ char 'Z'
+  _ <- newline
+  return (shape, shapeOrResult)
 
-parseSuggestionB :: Char -> Result
-parseSuggestionB 'X' = Lose
-parseSuggestionB 'Y' = Draw
-parseSuggestionB 'Z' = Win
-parseSuggestionB _ = error "Invalid suggestion input"
+shapeScore :: Shape -> Int
+shapeScore = (+1) . fromEnum
 
-parseInput :: ([Char] -> Game) -> String -> [Game]
-parseInput parseLine = map (parseLine . filter (not . isSpace)) . lines
+resultScore :: Result -> Int
+resultScore = (*3) . fromEnum
 
-parseLineA :: [Char] -> Game
-parseLineA [a, b] = Game (parseOpponent a) (parseSuggestionA b)
-parseLineA _ = error "Invalid input line"
+shapeFromResult :: Shape -> Result -> Shape
+shapeFromResult opponent Lose = head $ filter ((==GT) . compare opponent) [Rock .. Scissors]
+shapeFromResult opponent Draw = opponent
+shapeFromResult opponent Win = head $ filter ((==LT) . compare opponent) [Rock .. Scissors]
 
-parseLineB :: [Char] -> Game
-parseLineB [a, b] = Game (parseOpponent a) (calculateSuggestion (parseOpponent a) (parseSuggestionB b))
-parseLineB _ = error "Invalid input line"
+resultFromShape :: Shape -> Shape -> Result
+resultFromShape opponent shape = case compare opponent shape of
+  GT -> Lose
+  EQ -> Draw
+  LT -> Win
 
-calculateSuggestion :: RPS -> Result -> RPS
-calculateSuggestion Rock Win = Paper
-calculateSuggestion Paper Win = Scissors
-calculateSuggestion Scissors Win = Rock
-calculateSuggestion Rock Lose = Scissors
-calculateSuggestion Paper Lose = Rock
-calculateSuggestion Scissors Lose = Paper
-calculateSuggestion a Draw = a
+calculateResult1 :: (Shape, ShapeOrResult) -> Int
+calculateResult1 (opponentShape, ShapeOrResult shape _) = shapeScore shape + resultScore result
+  where
+  result = resultFromShape opponentShape shape
 
-calculateResult :: Game -> Result
-calculateResult (Game Rock Paper) = Win
-calculateResult (Game Rock Scissors) = Lose
-calculateResult (Game Paper Rock) = Lose
-calculateResult (Game Paper Scissors) = Win
-calculateResult (Game Scissors Rock) = Win
-calculateResult (Game Scissors Paper) = Lose
-calculateResult (Game _ _) = Draw
+calculateResult2 :: (Shape, ShapeOrResult) -> Int
+calculateResult2 (opponentShape, ShapeOrResult _ result) = shapeScore shape + resultScore result
+  where
+  shape = shapeFromResult opponentShape result
 
-calculateShapeScore :: Game -> Int
-calculateShapeScore (Game _ Rock) = 1
-calculateShapeScore (Game _ Paper) = 2
-calculateShapeScore (Game _ Scissors) = 3
+part1 :: [(Shape, ShapeOrResult)] -> Int
+part1 = sum . map calculateResult1
 
-calculateScore :: Game -> Int
-calculateScore g =
-  let s = calculateShapeScore g in
-  s + case calculateResult g of
-  Win -> 6
-  Lose -> 0
-  Draw -> 3
+part2 :: [(Shape, ShapeOrResult)] -> Int
+part2 = sum . map calculateResult2
 
-solution :: [Game] -> Int
-solution = sum . map calculateScore
-
-solve :: FilePath -> IO ()
-solve f = do
-  input <- readFile f
-  solA <- (pure . solution . (parseInput parseLineA)) input
-  solB <- (pure . solution . (parseInput parseLineB)) input
-  putStrLn ("The total score if everthing goes exactly according to the strategy guide is " ++ (show solA) ++ ".")
-  putStrLn ("The total score if everthing goes exactly according to the elf's instructions is " ++ (show solB) ++ ".")
-
-day :: Day
-day = DayFile solve
+day :: Day.Day [(Shape, ShapeOrResult)] Int
+day = Day.Day parseInput part1 part2
