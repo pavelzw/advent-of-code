@@ -1,13 +1,13 @@
 on: [push]
 
-name: Build Advent of Code executables
+name: Build AoC executables
 jobs:
   build-haskell:
     strategy:
       matrix:
         year: [2022]
         os: [ubuntu-latest, macos-latest, windows-latest]
-    name: Build Advent of Code ${{ matrix.year }} (${{ matrix.os }})
+    name: Build ${{ matrix.year }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3

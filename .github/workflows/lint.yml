@@ -1,0 +1,24 @@
+on: [push]
+
+name: Lint AoC code
+jobs:
+  hlint:
+    strategy:
+      matrix:
+        year: [2022]
+    name: HLint ${{ matrix.year }}
+    # runs-on: ubuntu-latest
+    # libtinfo.so.5 is needed by hlint which is not shipped with ubuntu-22.04
+    # see https://github.com/haskell/actions/issues/128
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: 'Set up HLint'
+      uses: haskell/actions/hlint-setup@v2
+
+    - name: 'Run HLint'
+      uses: haskell/actions/hlint-run@v2
+      with:
+        path: '${{ matrix.year }}/'
+        fail-on: warning

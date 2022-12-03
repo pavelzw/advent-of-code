@@ -36,9 +36,9 @@ resultScore :: Result -> Int
 resultScore = (*3) . fromEnum
 
 shapeFromResult :: Shape -> Result -> Shape
-shapeFromResult opponent Lose = head $ filter ((==GT) . compare opponent) [Rock .. Scissors]
+shapeFromResult opponent Lose = head $ filter (opponent >) [Rock .. Scissors]
 shapeFromResult opponent Draw = opponent
-shapeFromResult opponent Win = head $ filter ((==LT) . compare opponent) [Rock .. Scissors]
+shapeFromResult opponent Win = head $ filter (opponent <) [Rock .. Scissors]
 
 resultFromShape :: Shape -> Shape -> Result
 resultFromShape opponent shape = case compare opponent shape of
