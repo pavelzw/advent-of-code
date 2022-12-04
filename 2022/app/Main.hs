@@ -13,12 +13,14 @@ import qualified Text.Megaparsec as MP
 import qualified Day01
 import qualified Day02
 import qualified Day03
+import qualified Day04
 
 solutions :: Map Int (FilePath -> IO ())
 solutions = fromList
   [ (1, getProgram Day01.day)
   , (2, getProgram Day02.day)
   , (3, getProgram Day03.day)
+  , (4, getProgram Day04.day)
   ]
 
 parseOrFail :: P.Parser a -> T.Text -> a
