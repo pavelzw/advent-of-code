@@ -35,22 +35,18 @@ parseMove = Move <$> (string (pack "move ") *> decimal)
 replace :: Int -> a -> [a] -> [a]
 replace n x xs = take n xs ++ [x] ++ drop (n + 1) xs
 
-move :: (Stack -> Stack) -> Move -> [Stack] -> [Stack]
-move transformer (Move n from to) stacks =
+move :: (Stack -> Stack) -> [Stack] -> Move -> [Stack]
+move transformer stacks (Move n from to) =
   let fromStack = stacks !! from
       toStack = stacks !! to
       (toStack', fromStack') = splitAt n fromStack
   in replace from fromStack' $ replace to (transformer toStack' ++ toStack) stacks
 
-performMoves :: (Stack -> Stack) -> [Stack] -> [Move] -> [Stack]
-performMoves _ stacks [] = stacks
-performMoves t stacks (m:ms) = performMoves t (move t m stacks) ms
-
 part1 :: ([Stack], [Move]) -> String
-part1 = map head . uncurry (performMoves reverse)
+part1 = map head . uncurry (foldl (move reverse))
 
 part2 :: ([Stack], [Move]) -> String
-part2 = map head . uncurry (performMoves id)
+part2 = map head . uncurry (foldl (move id))
 
 day :: Day.Day ([Stack], [Move]) String
 day = Day.Day parseInput part1 part2
