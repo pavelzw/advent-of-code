@@ -4,58 +4,45 @@ import qualified Day
 import Parse (Parser)
 
 import Data.List (transpose)
-import Data.Char (isDigit)
-import Text.Megaparsec (manyTill, try, errorBundlePretty, some, parse, between, many, takeP, (<|>), sepBy, sepBy1, endBy, endBy1, takeWhileP, satisfy)
+import Data.Char (isSpace)
+import Text.Megaparsec (skipManyTill, anySingle, errorBundlePretty, some, parse, between, (<|>), sepBy, endBy)
 import Text.Megaparsec.Char (char, newline, upperChar)
 import Text.Megaparsec.Byte (string)
 import Text.Megaparsec.Char.Lexer (decimal)
-import qualified Data.Text as T
+import Data.Text (pack)
 
 type Crate = Char
 type Stack = [Crate]
-type Move = (Int, Int, Int)
+data Move = Move Int Int Int deriving Show
 
 parseStr :: Parser a -> String -> a
-parseStr p s = either (error . errorBundlePretty) id (parse p "" (T.pack s))
+parseStr p s = either (error . errorBundlePretty) id (parse p "" (pack s))
 
-parseLine :: Parser [Char]
-parseLine = (between (char '[') (char ']') upperChar <|> between (char ' ') (char ' ') (char ' ')) `sepBy` char ' '
+parseCrate :: Parser Crate
+parseCrate = between (char '[') (char ']') upperChar <|> ' ' <$ string (pack "   ")
 
 parseInput :: Parser ([Stack], [Move])
 parseInput = do
-  stacks <- endBy1 (try parseLine) newline
-  takeWhileP Nothing (/= '\n')
-  newline 
-  newline
-  moves <- endBy1 parseMoveLine newline
-  let stacks' = (map (takeWhile (/= ' ') . reverse) . transpose) stacks
-  return (stacks', moves)
+  stacks <- map (reverse . dropWhile isSpace) . transpose <$> parseCrate `sepBy` char ' ' `endBy` newline
+  skipManyTill anySingle newline <* newline
+  moves <- some parseMove
+  return (stacks, moves)
 
-parseMoveLine :: Parser Move
-parseMoveLine = do
-  string (T.pack "move ")
-  n <- decimal
-  string (T.pack " from ")
-  from <- decimal
-  string (T.pack " to ")
-  to <- decimal
-  return (n, from, to)
-
-getStack :: Int -> [Stack] -> Stack
-getStack n stacks = stacks !! (n - 1)
+parseMove :: Parser Move
+parseMove = Move <$> (string (pack "move ") *> decimal) <*> (pred <$> (string (pack " from ") *> decimal)) <*> (pred <$> (string (pack " to ") *> decimal)) <* newline
 
 replace :: Int -> a -> [a] -> [a]
-replace n x xs = take (n - 1) xs ++ [x] ++ drop n xs
+replace n x xs = take n xs ++ [x] ++ drop (n + 1) xs
 
 move :: (Stack -> Stack) -> Move -> [Stack] -> [Stack]
-move trasformer (n, from, to) stacks =
-  let fromStack = getStack from stacks
-      toStack = getStack to stacks
+move trasformer (Move n from to) stacks =
+  let fromStack = stacks !! from
+      toStack = stacks !! to
       (fromStack', toStack') = splitAt (length fromStack - n) fromStack
   in replace from fromStack' $ replace to (toStack ++ trasformer toStack') stacks
 
 performMoves :: (Stack -> Stack) -> [Stack] -> [Move] -> [Stack]
-performMoves t stacks [] = stacks
+performMoves _ stacks [] = stacks
 performMoves t stacks (m:ms) = performMoves t (move t m stacks) ms
 
 part1 :: ([Stack], [Move]) -> String
