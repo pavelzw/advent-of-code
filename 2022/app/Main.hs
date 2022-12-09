@@ -17,6 +17,7 @@ import qualified Day04
 import qualified Day05
 import qualified Day06
 import qualified Day08
+import qualified Day09
 
 solutions :: Map Int (FilePath -> IO ())
 solutions = fromList
@@ -27,6 +28,7 @@ solutions = fromList
   , (5, getProgram Day05.day)
   , (6, getProgram Day06.day)
   , (8, getProgram Day08.day)
+  , (9, getProgram Day09.day)
   ]
 
 parseOrFail :: P.Parser a -> T.Text -> a
