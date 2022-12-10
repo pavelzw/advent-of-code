@@ -18,6 +18,7 @@ import qualified Day05
 import qualified Day06
 import qualified Day08
 import qualified Day09
+import qualified Day10
 
 solutions :: Map Int (FilePath -> IO ())
 solutions = fromList
@@ -29,6 +30,7 @@ solutions = fromList
   , (6, getProgram Day06.day)
   , (8, getProgram Day08.day)
   , (9, getProgram Day09.day)
+  , (10, getProgram Day10.day)
   ]
 
 parseOrFail :: P.Parser a -> T.Text -> a
@@ -40,8 +42,8 @@ execAOC :: (Show b) => P.Parser a -> (a -> b) -> (a -> b) -> FilePath -> IO ()
 execAOC parser part1 part2 inputFile = do
   source <- TIO.readFile inputFile
   let input = parseOrFail parser source
-  putStrLn $ "Solution for part 1: " ++ (show . part1) input
-  putStrLn $ "Solution for part 2: " ++ (show . part2) input
+  putStrLn $ "Solution for part 1:\n" ++ (show . part1) input
+  putStrLn $ "Solution for part 2:\n" ++ (show . part2) input
 
 getProgram :: (Show b) => Day.Day a b -> (FilePath -> IO ())
 getProgram (Day.Day p p1 p2) = execAOC p p1 p2
