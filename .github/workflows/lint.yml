@@ -7,10 +7,7 @@ jobs:
       matrix:
         year: [2022]
     name: HLint ${{ matrix.year }}
-    # runs-on: ubuntu-latest
-    # libtinfo.so.5 is needed by hlint which is not shipped with ubuntu-22.04
-    # see https://github.com/haskell/actions/issues/128
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
