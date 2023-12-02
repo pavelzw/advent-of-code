@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{fmt, fs, io};
 
-
 use clap::Parser;
 
 #[derive(Parser)]
@@ -58,9 +57,8 @@ impl Day {
 
 days! {
     Y2023D01: "01" => y2023::d01::solve,
+    Y2023D02: "02" => y2023::d02::solve,
 }
-
-
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
