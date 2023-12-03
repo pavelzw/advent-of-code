@@ -58,6 +58,7 @@ impl Day {
 days! {
     Y2023D01: "01" => y2023::d01::solve,
     Y2023D02: "02" => y2023::d02::solve,
+    Y2023D03: "03" => y2023::d03::solve,
 }
 
 fn main() -> io::Result<()> {
