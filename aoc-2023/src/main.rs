@@ -45,6 +45,13 @@ macro_rules! days {
     };
 }
 
+days! {
+    Y2023D01: "01" => y2023::d01::solve,
+    Y2023D02: "02" => y2023::d02::solve,
+    Y2023D03: "03" => y2023::d03::solve,
+    Y2023D04: "04" => y2023::d04::solve,
+}
+
 impl Day {
     fn from_path(path: &Path) -> Option<Self> {
         let file_name = path.file_stem()?.as_bytes();
@@ -53,12 +60,6 @@ impl Day {
         let day = day.parse().ok()?;
         Some(day)
     }
-}
-
-days! {
-    Y2023D01: "01" => y2023::d01::solve,
-    Y2023D02: "02" => y2023::d02::solve,
-    Y2023D03: "03" => y2023::d03::solve,
 }
 
 fn main() -> io::Result<()> {

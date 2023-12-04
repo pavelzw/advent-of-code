@@ -73,16 +73,16 @@ pub fn solve(input: String) {
             line.chars()
                 .enumerate()
                 .filter(|(_, c)| !c.is_digit(10) && c != &'.')
-                .map(move |(col, c)| (SymbolCoord{row, col}, c))
+                .map(move |(col, c)| (SymbolCoord { row, col }, c))
         })
         .collect::<Vec<_>>();
 
     let solution_1 = number_coords
         .iter()
         .filter_map(|(number_coord, number)| {
-            let l_inf_distances = symbol_coords.iter().map(|(symbol_coord, _)| {
-                l_inf_distance(number_coord, symbol_coord)
-            });
+            let l_inf_distances = symbol_coords
+                .iter()
+                .map(|(symbol_coord, _)| l_inf_distance(number_coord, symbol_coord));
             if l_inf_distances.min().unwrap() <= 1 {
                 Some(number)
             } else {
