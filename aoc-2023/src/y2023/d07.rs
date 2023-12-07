@@ -18,6 +18,25 @@ enum Card {
     Ace,
 }
 
+fn card_from_char(c: char) -> Card {
+    match c {
+        'A' => Card::Ace,
+        'K' => Card::King,
+        'Q' => Card::Queen,
+        'J' => Card::JackOrJoker,
+        'T' => Card::Ten,
+        '9' => Card::Nine,
+        '8' => Card::Eight,
+        '7' => Card::Seven,
+        '6' => Card::Six,
+        '5' => Card::Five,
+        '4' => Card::Four,
+        '3' => Card::Three,
+        '2' => Card::Two,
+        _ => panic!("Invalid card: {}", c),
+    }
+}
+
 impl Card {
     fn joker_cmp(&self, other: &Self) -> Ordering {
         match (&self, &other) {
@@ -33,7 +52,7 @@ impl Card {
     }
 }
 
-#[derive(Debug, Ord, PartialOrd, PartialEq, Eq)]
+#[derive(Debug, Ord, PartialOrd, PartialEq, Eq, Clone, Copy)]
 enum Type {
     HighCard,
     OnePair,
@@ -77,7 +96,6 @@ fn joker_get_card_counts(cards: [Card; 5]) -> [usize; 5] {
     let mut counts = [0; 5];
     let mut cards = cards.clone();
     cards.sort();
-    // println!("{:?}", cards);
     let cards = cards
         .iter()
         .filter(|c| **c != Card::JackOrJoker)
@@ -146,7 +164,10 @@ struct Hand {
 }
 
 impl Hand {
-    fn traditional_get_type(&self) -> Type {
+    fn get_type<F>(&self, match_type: F) -> Type
+    where
+        F: Fn(Type, [Card; 5]) -> bool,
+    {
         for card_type in vec![
             Type::FiveOfAKind,
             Type::FourOfAKind,
@@ -155,57 +176,31 @@ impl Hand {
             Type::TwoPairs,
             Type::OnePair,
         ] {
-            if card_type.traditional_match_type(self.cards.clone()) {
+            if match_type(card_type, self.cards.clone()) {
                 return card_type;
             }
         }
         return Type::HighCard;
+    }
+    fn traditional_get_type(&self) -> Type {
+        self.get_type(|card_type, cards| card_type.traditional_match_type(cards))
     }
 
     fn joker_get_type(&self) -> Type {
-        for card_type in vec![
-            Type::FiveOfAKind,
-            Type::FourOfAKind,
-            Type::FullHouse,
-            Type::ThreeOfAKind,
-            Type::TwoPairs,
-            Type::OnePair,
-        ] {
-            if card_type.joker_match_type(self.cards.clone()) {
-                return card_type;
-            }
-        }
-        return Type::HighCard;
+        self.get_type(|card_type, cards| card_type.joker_match_type(cards))
     }
-}
 
-fn card_from_char(c: char) -> Card {
-    match c {
-        'A' => Card::Ace,
-        'K' => Card::King,
-        'Q' => Card::Queen,
-        'J' => Card::JackOrJoker,
-        'T' => Card::Ten,
-        '9' => Card::Nine,
-        '8' => Card::Eight,
-        '7' => Card::Seven,
-        '6' => Card::Six,
-        '5' => Card::Five,
-        '4' => Card::Four,
-        '3' => Card::Three,
-        '2' => Card::Two,
-        _ => panic!("Invalid card: {}", c),
-    }
-}
-
-impl Hand {
-    fn traditional_cmp(&self, other: &Self) -> Ordering {
-        let self_type = self.traditional_get_type();
-        let other_type = other.traditional_get_type();
+    fn cmp<F, G>(&self, other: &Self, get_type: F, cmp: G) -> Ordering
+    where
+        F: Fn(&Self) -> Type,
+        G: Fn(&Card, &Card) -> Ordering,
+    {
+        let self_type = get_type(self);
+        let other_type = get_type(other);
         if self_type == other_type {
             for (self_card, other_card) in self.cards.iter().zip(other.cards.iter()) {
                 if self_card != other_card {
-                    let test = self_card.cmp(other_card);
+                    let test = cmp(self_card, other_card);
                     return test;
                 }
             }
@@ -213,23 +208,26 @@ impl Hand {
         } else {
             self_type.cmp(&other_type)
         }
+    }
+
+    fn traditional_cmp(&self, other: &Self) -> Ordering {
+        self.cmp(other, Hand::traditional_get_type, Card::traditional_cmp)
     }
 
     fn joker_cmp(&self, other: &Self) -> Ordering {
-        let self_type = self.joker_get_type();
-        let other_type = other.joker_get_type();
-        if self_type == other_type {
-            for (self_card, other_card) in self.cards.iter().zip(other.cards.iter()) {
-                if self_card != other_card {
-                    let test = self_card.joker_cmp(other_card);
-                    return test;
-                }
-            }
-            Equal
-        } else {
-            self_type.cmp(&other_type)
-        }
+        self.cmp(other, Hand::joker_get_type, Card::joker_cmp)
     }
+}
+
+fn get_winnings(ordered_hands: Vec<Hand>) -> usize {
+    ordered_hands
+        .iter()
+        .enumerate()
+        .map(|(i, h)| {
+            let rank = i + 1;
+            h.bid * rank
+        })
+        .sum()
 }
 
 pub fn solve(input: String) {
@@ -250,25 +248,11 @@ pub fn solve(input: String) {
             Hand { cards, bid }
         })
         .collect::<Vec<_>>();
-    hands.sort_by(|a, b| a.traditional_cmp(b));
-    let solution_1 = hands
-        .iter()
-        .enumerate()
-        .map(|(i, h)| {
-            let rank = i + 1;
-            h.bid * rank
-        })
-        .sum::<usize>();
+    hands.sort_by(Hand::traditional_cmp);
+    let solution_1 = get_winnings(hands.clone());
     println!("Level 1: {}", solution_1);
 
-    hands.sort_by(|a, b| a.joker_cmp(b));
-    let solution_2 = hands
-        .iter()
-        .enumerate()
-        .map(|(i, h)| {
-            let rank = i + 1;
-            h.bid * rank
-        })
-        .sum::<usize>();
+    hands.sort_by(Hand::joker_cmp);
+    let solution_2 = get_winnings(hands.clone());
     println!("Level 2: {}", solution_2);
 }
