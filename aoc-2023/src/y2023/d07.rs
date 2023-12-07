@@ -67,15 +67,13 @@ fn get_num_jokers(cards: &[Card; 5]) -> usize {
     cards.iter().filter(|c| **c == Card::JackOrJoker).count()
 }
 
-fn traditional_get_card_counts(cards: [Card; 5]) -> [usize; 5] {
+fn traditional_get_card_counts(mut cards: [Card; 5]) -> [usize; 5] {
     let mut counts = [0; 5];
-    let mut cards = cards.clone();
     cards.sort();
     let mut last_card = &cards[0];
     let mut index = 0;
     let mut count = 1;
-    for i in 1..cards.len() {
-        let card = &cards[i];
+    for card in cards.iter().skip(1) {
         if card == last_card {
             count += 1;
         } else {
@@ -92,9 +90,8 @@ fn traditional_get_card_counts(cards: [Card; 5]) -> [usize; 5] {
     counts
 }
 
-fn joker_get_card_counts(cards: [Card; 5]) -> [usize; 5] {
+fn joker_get_card_counts(mut cards: [Card; 5]) -> [usize; 5] {
     let mut counts = [0; 5];
-    let mut cards = cards.clone();
     cards.sort();
     let cards = cards
         .iter()
@@ -106,8 +103,7 @@ fn joker_get_card_counts(cards: [Card; 5]) -> [usize; 5] {
     let mut last_card = &cards[0];
     let mut index = 0;
     let mut count = 1;
-    for i in 1..cards.len() {
-        let card = &cards[i];
+    for card in cards.iter().skip(1) {
         if card == last_card {
             count += 1;
         } else {
@@ -168,7 +164,7 @@ impl Hand {
     where
         F: Fn(Type, [Card; 5]) -> bool,
     {
-        for card_type in vec![
+        for card_type in [
             Type::FiveOfAKind,
             Type::FourOfAKind,
             Type::FullHouse,
@@ -180,7 +176,7 @@ impl Hand {
                 return card_type;
             }
         }
-        return Type::HighCard;
+        Type::HighCard
     }
     fn traditional_get_type(&self) -> Type {
         self.get_type(|card_type, cards| card_type.traditional_match_type(cards))
@@ -237,7 +233,7 @@ pub fn solve(input: String) {
         .map(|l| {
             let cards = &l[0..5];
             let bid = l[6..].parse::<usize>().unwrap();
-            let cards = cards.chars().map(|c| card_from_char(c)).collect::<Vec<_>>();
+            let cards = cards.chars().map(card_from_char).collect::<Vec<_>>();
             let cards = [
                 cards.get(0).unwrap().clone(),
                 cards.get(1).unwrap().clone(),
